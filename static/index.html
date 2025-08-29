@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="pl">
+  <head>
+    <title>proszę hackować</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width" />
+
+    <style>
+      :root {
+        --gray-90: hsl(0, 0%, 90%);
+        --gray-75: hsl(0, 0%, 75%);
+        --gray-50: hsl(0, 0%, 50%);
+        --gray-20: hsl(0, 0%, 20%);
+        --gray-15: hsl(0, 0%, 15%);
+        --gray-10: hsl(0, 0%, 10%);
+
+        background: var(--gray-15);
+        color: var(--gray-90);
+        text-align: center;
+        font-family: sans-serif;
+      }
+
+      @media (prefers-color-scheme: light) {
+        :root {
+          --gray-90: hsl(0, 0%, 10%);
+          --gray-75: hsl(0, 0%, 25%);
+          --gray-20: hsl(0, 0%, 80%);
+          --gray-15: hsl(0, 0%, 85%);
+          --gray-10: hsl(0, 0%, 90%);
+        }
+      }
+
+      code {
+        display: block;
+        font-size: 1.5em;
+      }
+
+      img {
+        max-width: 80%;
+      }
+    </style>
+  </head>
+
+  <body>
+    <main>
+      <h1>dzień dobry</h1>
+      <h2>proszę hackować</h2>
+      <code>
+        curl -X POST cebula.jel.gay/pixel -H "Content-Type: application/json"
+        --data '{"x": u32, "y": u32, "r": u8, "g": u8, "b": u8}'
+      </code>
+      <img id="image" src="/image" alt="Obecny stan" />
+    </main>
+  </body>
+</html>
+
+<script>
+  const image = document.getElementById("image");
+
+  function updateImate() {
+    const url = new URL(image.src);
+    url.searchParams.set("cache", new Date().getTime());
+    image.src = url;
+  }
+
+  setInterval(updateImate, 1000);
+</script>

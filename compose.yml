@@ -1,0 +1,10 @@
+services:
+  prosze-hackowac:
+    build: .
+    ports:
+      - 80:80
+    volumes:
+      - prosze-hackowac:/data
+
+volumes:
+  prosze-hackowac:
