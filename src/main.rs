@@ -8,14 +8,17 @@ use async_signal::{Signal, Signals};
 use futures_util::StreamExt;
 use image::{ImageFormat, ImageReader, Rgb, RgbImage};
 use poem::endpoint::StaticFileEndpoint;
+use poem::http::StatusCode;
 use poem::listener::TcpListener;
+use poem::middleware::Tracing;
 use poem::web::{Data, Json};
-use poem::{EndpointExt, Response, Route, Server, handler};
+use poem::{EndpointExt, IntoResponse, Response, Route, Server, handler};
 use serde::Deserialize;
 
 #[derive(Clone)]
 struct ServerState {
     canvas: Arc<RwLock<RgbImage>>,
+    canvas_size: (u32, u32),
     canvas_cache: Arc<Mutex<Option<CanvasCache<Vec<u8>>>>>,
     queue: Arc<Sender<Pixel>>,
 }
@@ -81,12 +84,22 @@ fn get_image(state: Data<&ServerState>) -> Response {
 
 #[handler]
 #[expect(clippy::needless_pass_by_value)]
-fn set_pixel(state: Data<&ServerState>, Json(json): Json<Pixel>) {
+fn set_pixel(state: Data<&ServerState>, Json(json): Json<Pixel>) -> Response {
+    if json.x >= state.canvas_size.0 || json.y >= state.canvas_size.1 {
+        return StatusCode::BAD_REQUEST
+            .with_body("pixel outside of drawing area")
+            .into_response();
+    }
+
     state.queue.send(json).unwrap();
+
+    StatusCode::NO_CONTENT.into()
 }
 
 #[tokio::main]
 async fn main() {
+    tracing_subscriber::fmt().init();
+
     let canvas = {
         let mut image_reader = ImageReader::open("data/image.png").unwrap();
         image_reader.set_format(ImageFormat::Png);
@@ -121,8 +134,13 @@ async fn main() {
         .at("/", StaticFileEndpoint::new("static/index.html"))
         .at("/image", poem::get(get_image))
         .at("/pixel", poem::post(set_pixel))
+        .with(Tracing)
         .data(ServerState {
             canvas: canvas.clone(),
+            canvas_size: {
+                let canvas = canvas.read().unwrap();
+                (canvas.width(), canvas.height())
+            },
             canvas_cache: Arc::default(),
             queue: Arc::new(tx),
         });

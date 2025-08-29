@@ -49,6 +49,7 @@
         curl -X POST cebula.jel.gay/pixel -H "Content-Type: application/json"
         --data '{"x": u32, "y": u32, "r": u8, "g": u8, "b": u8}'
       </code>
+      rozmiar: 1920×1080
       <img id="image" src="/image" alt="Obecny stan" />
     </main>
   </body>
@@ -57,11 +58,11 @@
 <script>
   const image = document.getElementById("image");
 
-  function updateImate() {
+  function updateImage() {
     const url = new URL(image.src);
     url.searchParams.set("cache", new Date().getTime());
     image.src = url;
   }
 
-  setInterval(updateImate, 1000);
+  setInterval(updateImage, 1000);
 </script>
