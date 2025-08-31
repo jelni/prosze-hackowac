@@ -29,19 +29,19 @@ struct CanvasCache<T> {
 }
 
 impl<T> CanvasCache<T> {
-    fn get(&self) -> Option<&T> {
-        if self.updated_at.elapsed() >= Duration::from_secs(1) {
-            return None;
-        }
-
-        Some(&self.data)
-    }
-
     fn new(data: T) -> Self {
         Self {
             data,
             updated_at: Instant::now(),
         }
+    }
+
+    fn get(&self) -> Option<&T> {
+        if self.updated_at.elapsed() >= Duration::from_millis(100) {
+            return None;
+        }
+
+        Some(&self.data)
     }
 }
 
@@ -79,7 +79,11 @@ fn get_image(state: Data<&ServerState>) -> Response {
 
     let data = buffer.into_inner();
     *state.canvas_cache.lock().unwrap() = Some(CanvasCache::new(data.clone()));
-    Response::from(data).set_content_type("image/png")
+
+    Response::from(data)
+        .set_content_type("image/png")
+        .with_header("Cache-Control", "no-store")
+        .into_response()
 }
 
 #[handler]

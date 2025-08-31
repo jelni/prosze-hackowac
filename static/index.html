@@ -50,7 +50,7 @@
   <body>
     <main>
       <h1>dzień dobry</h1>
-      <h2>proszę hackować</h2>
+      <h2 id="subtitle">proszę hackować</h2>
       <code>
         curl -X POST cebula.jel.gay/pixel -H "Content-Type: application/json"
         --data '{"x": u32, "y": u32, "r": u8, "g": u8, "b": u8}'
@@ -63,6 +63,13 @@
 </html>
 
 <script>
+  const image = document.getElementById("image");
+  const subtitle = document.getElementById("subtitle");
+
+  if (Math.random() < 0.01) {
+    subtitle.textContent = "hacked by hackerspace żyrardów";
+  }
+
   function updateImage() {
     const url = new URL(image.src);
     url.searchParams.set("cache", new Date().getTime());
@@ -70,10 +77,9 @@
   }
 
   function scheduleUpdateImage() {
-    setTimeout(updateImage, 1000);
+    setTimeout(updateImage, 100);
   }
 
-  const image = document.getElementById("image");
   image.addEventListener("load", scheduleUpdateImage);
   image.addEventListener("error", scheduleUpdateImage);
 </script>

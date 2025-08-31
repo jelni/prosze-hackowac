@@ -3,6 +3,7 @@ services:
     build: .
     ports:
       - 80:80
+    stop_grace_period: 1m
     ulimits:
       nofile:
         soft: 1048576
