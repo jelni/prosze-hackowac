@@ -34,6 +34,16 @@ pub struct Pixel {
 }
 
 impl Pixel {
+    pub fn from_bytes(bytes: &[u8; 11]) -> Self {
+        Self {
+            x: u32::from_be_bytes(bytes[..4].try_into().unwrap()),
+            y: u32::from_be_bytes(bytes[4..8].try_into().unwrap()),
+            r: bytes[8],
+            g: bytes[9],
+            b: bytes[10],
+        }
+    }
+
     pub const fn color(&self) -> Rgb<u8> {
         Rgb([self.r, self.g, self.b])
     }
@@ -55,8 +65,8 @@ impl UpdatesBatch {
             .flat_map(|(position, Rgb(color))| {
                 <[_; _]>::from(position)
                     .into_iter()
-                    .flat_map(u32::to_le_bytes)
-                    .chain(color.into_iter().flat_map(u8::to_le_bytes))
+                    .flat_map(u32::to_be_bytes)
+                    .chain(color.into_iter().flat_map(u8::to_be_bytes))
             })
             .collect()
     }

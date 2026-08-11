@@ -18,6 +18,7 @@ use crate::models::{Cli, Pixel, ServerState, UpdatesBatch};
 
 mod endpoints;
 mod models;
+mod network;
 
 pub const CONNECTION_TIMEOUT: Duration = Duration::from_secs(10);
 
@@ -77,15 +78,31 @@ async fn main() {
         Arc::new(RwLock::new(image))
     };
 
+    let canvas_size = {
+        let canvas = canvas.read().unwrap();
+        (canvas.width(), canvas.height())
+    };
+
     let (queue_tx, queue_rx) = mpsc::channel::<Option<Pixel>>();
     let (updated_pixels_tx, _) = broadcast::channel::<String>(16);
     let updated_pixels_weak = updated_pixels_tx.downgrade();
 
-    let handle = {
+    let process_queue_handle = {
         let canvas = canvas.clone();
-
         thread::spawn(|| process_queue(canvas, queue_rx, updated_pixels_tx))
     };
+
+    let tcp_listener_handle = tokio::spawn(network::tcp_listener(
+        "127.0.0.1:8081",
+        canvas_size,
+        queue_tx.clone(),
+    ));
+
+    let udp_listener_handle = tokio::spawn(network::udp_listener(
+        "127.0.0.1:8082",
+        canvas_size,
+        queue_tx.clone(),
+    ));
 
     let app = Route::new()
         .at("/", StaticFileEndpoint::new("static/index.html"))
@@ -95,10 +112,7 @@ async fn main() {
         .with(Tracing)
         .data(ServerState {
             canvas: canvas.clone(),
-            canvas_size: {
-                let canvas = canvas.read().unwrap();
-                (canvas.width(), canvas.height())
-            },
+            canvas_size,
             queue: queue_tx.clone(),
             updated_pixels: updated_pixels_weak,
         });
@@ -117,7 +131,9 @@ async fn main() {
         .await
         .unwrap();
 
-    handle.join().unwrap();
+    // tcp_listener_handle.await.unwrap();
+    // udp_listener_handle.await.unwrap();
+    process_queue_handle.join().unwrap();
 
     canvas
         .read()
