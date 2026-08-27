@@ -13,6 +13,12 @@ use crate::models::{Pixel, ServerState};
 
 #[poem::handler]
 #[expect(clippy::needless_pass_by_value)]
+pub fn index(state: Data<&ServerState>) -> Response {
+    state.index_html.clone().into()
+}
+
+#[poem::handler]
+#[expect(clippy::needless_pass_by_value)]
 pub fn get_image(state: Data<&ServerState>) -> Response {
     let canvas = state.canvas.read().unwrap().clone();
     let mut buffer = Cursor::new(Vec::new());

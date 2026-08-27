@@ -11,6 +11,9 @@ pub struct Cli {
     /// host to bin the server to
     #[arg(long, default_value = "localhost")]
     pub host: String,
+    /// domain displayed on the page
+    #[arg(long)]
+    pub domain: Option<String>,
     /// port to bind the HTTP server to
     #[arg(long, default_value_t = 8080)]
     pub http_port: u16,
@@ -24,6 +27,7 @@ pub struct Cli {
 
 #[derive(Clone)]
 pub struct ServerState {
+    pub index_html: String,
     pub canvas: Arc<RwLock<RgbImage>>,
     pub canvas_size: (u32, u32),
     pub queue: mpsc::UnboundedSender<Pixel>,

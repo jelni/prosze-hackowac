@@ -57,12 +57,19 @@
             <h2 id="subtitle">proszę hackować</h2>
 
             <code>
-                curl -X POST cebula.jel.gay/pixel -H "Content-Type:
+                curl -X POST {{http-domain}}/pixel -H "Content-Type:
                 application/json" --data '{"x": u32, "y": u32, "r": u8, "g": u8,
                 "b": u8}'
             </code>
 
-            rozmiar: 1920×1080
+            <p>
+                szybciej: big-endian u32, u32, u8, u8, u8 (x, y, r, g, b) przez
+                TCP na {{tcp-domain}}. jeszcze szybciej: ten sam payload przez
+                UDP na {{udp-domain}}. można wysłać więcej niż jeden piksel w
+                pakiecie!!!
+            </p>
+
+            <p>rozmiar: {{width}}×{{height}}</p>
 
             <div id="content">subskrybowanie strumienia zmian…</div>
             <a href="https://github.com/jelni/prosze-hackowac">GitHub</a>

@@ -1,3 +1,4 @@
+use std::borrow::Cow;
 use std::sync::{Arc, RwLock};
 use std::time::Duration;
 
@@ -6,7 +7,6 @@ use base64::Engine;
 use base64::prelude::BASE64_STANDARD_NO_PAD;
 use clap::Parser;
 use image::{ImageBuffer, ImageFormat, ImageReader, RgbImage};
-use poem::endpoint::StaticFileEndpoint;
 use poem::listener::TcpListener;
 use poem::middleware::Tracing;
 use poem::{EndpointExt, Route, Server};
@@ -21,6 +21,36 @@ mod models;
 mod network;
 
 pub const CONNECTION_TIMEOUT: Duration = Duration::from_secs(10);
+
+fn get_index_html(args: &Cli, canvas_size: (u32, u32)) -> String {
+    let domain = args.domain.as_ref().unwrap_or(&args.host);
+    let mut template = include_str!("../static/index.html").to_owned();
+
+    for (tag, value) in [
+        (
+            "http-domain",
+            if args.http_port == 80 {
+                Cow::Borrowed(domain)
+            } else {
+                Cow::Owned(format!("{domain}:{}", args.http_port))
+            },
+        ),
+        (
+            "tcp-domain",
+            Cow::Owned(format!("{domain}:{}", args.tcp_port)),
+        ),
+        (
+            "udp-domain",
+            Cow::Owned(format!("{domain}:{}", args.udp_port)),
+        ),
+        ("width", Cow::Owned(canvas_size.0.to_string())),
+        ("height", Cow::Owned(canvas_size.1.to_string())),
+    ] {
+        template = template.replacen(&format!("{{{{{tag}}}}}"), &value, 1);
+    }
+
+    template
+}
 
 #[expect(clippy::significant_drop_tightening)]
 async fn process_queue(
@@ -134,12 +164,13 @@ async fn main() {
     };
 
     let app = Route::new()
-        .at("/", StaticFileEndpoint::new("static/index.html"))
+        .at("/", poem::get(endpoints::index))
         .at("/image", poem::get(endpoints::get_image))
         .at("/updates", poem::get(endpoints::get_updates))
         .at("/pixel", poem::post(endpoints::set_pixel))
         .with(Tracing)
         .data(ServerState {
+            index_html: get_index_html(&args, canvas_size),
             canvas: canvas.clone(),
             canvas_size,
             queue: queue_tx.clone(),
