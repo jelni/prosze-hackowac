@@ -19,5 +19,5 @@ a silly pixelflood-inspired project made on
 
 ## future plans
 
-- allow setting pixels via TCP
-- send canvas updates with a websocket
+- collect and display pixel placing statistics on the frontend
+- allow simple drawing with the mouse pointer
