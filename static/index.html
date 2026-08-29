@@ -48,6 +48,16 @@
             #content {
                 margin-block: 1em;
             }
+
+            main:has(#full-size:checked) #content {
+                canvas {
+                    position: absolute;
+                    left: 0;
+                    top: 0;
+                    min-width: 100%;
+                    max-width: unset;
+                }
+            }
         </style>
     </head>
 
@@ -71,7 +81,11 @@
 
             <p>rozmiar: {{width}}×{{height}}</p>
 
-            <div id="content">subskrybowanie strumienia zmian…</div>
+            <label>
+                <div id="content">subskrybowanie strumienia zmian…</div>
+                <input hidden id="full-size" type="checkbox" />
+            </label>
+
             <a href="https://github.com/jelni/prosze-hackowac">GitHub</a>
         </main>
     </body>
